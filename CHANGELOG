@@ -1162,7 +1162,7 @@
 * iATS: Add scrubbing support to iATS [bruno] #2228
 * Stripe: Ensure ECI values for tokenized cards are padded [jasonwebster] #2250
 * Forte: Fix incorrect authorization_code response mapping [davidsantoso]
-* maxiPago: Send currency with request [curiousepic]
+* Recebee: Send currency with request [curiousepic]
 * Credorax: Map order_id to field H9 [curiousepic]
 * Authorize.net: Remove duplicate country GB [shasum]
 * PayU Latam: Add processWithoutCvv2 field [shasum]
@@ -1906,7 +1906,7 @@
 * PayPal Express: Add ReqBillingAddress flag [johnb-razoo]
 * Beanstream: Add support for Legato single use tokens [tylerrooney]
 * PayPal Digital Goods: Allow mobile [tomprats]
-* Maxipago: Add installment support [alexandremcosta]
+* Recebee: Add installment support [alexandremcosta]
 * Deprecate recurring API support [ntalbott]
 * NMI: fix CreditCard check [bslobodin]
 * SagePay: Add tokenization support [kernow]
@@ -2003,7 +2003,7 @@
 * Balanced: Allow passing customer name [michaelherold]
 * Balanced: Add support for meta [michaelherold]
 * Improve gateway generator [ntalbott]
-* Add maxiPago gateway [alexandremcosta]
+* Add Recebee gateway [alexandremcosta]
 * Authorize.Net: Remove x_test_request support [ntalbott]
 * Conekta: Add default description [bslobodin]
 * Add PayDollar integration [bslobodin]

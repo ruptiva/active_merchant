@@ -2,18 +2,18 @@ require 'nokogiri'
 
 module ActiveMerchant #:nodoc:
   module Billing #:nodoc:
-    class MaxipagoGateway < Gateway
+    class RecebeeGateway < Gateway
       API_VERSION = '3.1.1.15'
 
-      self.live_url = 'https://api.maxipago.net/UniversalAPI/postXML'
-      self.test_url = 'https://testapi.maxipago.net/UniversalAPI/postXML'
+      self.live_url = 'https://api.recebee.net/UniversalAPI/postXML'
+      self.test_url = 'https://testapi.recebee.net/UniversalAPI/postXML'
 
       self.supported_countries = ['BR']
       self.default_currency = 'BRL'
       self.money_format = :dollars
       self.supported_cardtypes = %i[visa master discover american_express diners_club]
-      self.homepage_url = 'http://www.maxipago.com/'
-      self.display_name = 'maxiPago!'
+      self.homepage_url = 'http://www.recebee.com/'
+      self.display_name = 'Recebee!'
 
       def initialize(options = {})
         requires!(options, :login, :password)

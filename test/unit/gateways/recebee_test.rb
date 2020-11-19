@@ -1,8 +1,8 @@
 require 'test_helper'
 
-class MaxipagoTest < Test::Unit::TestCase
+class RecebeeTest < Test::Unit::TestCase
   def setup
-    @gateway = MaxipagoGateway.new(
+    @gateway = RecebeeGateway.new(
       login: 'login',
       password: 'password'
     )
@@ -129,11 +129,11 @@ class MaxipagoTest < Test::Unit::TestCase
 
   def pre_scrubbed
     %(
-      opening connection to testapi.maxipago.net:443...
+      opening connection to testapi.recebee.net:443...
       opened
-      starting SSL for testapi.maxipago.net:443...
+      starting SSL for testapi.recebee.net:443...
       SSL established
-      <- "POST /UniversalAPI/postXML HTTP/1.1\r\nContent-Type: text/xml\r\nAccept-Encoding: gzip;q=1.0,deflate;q=0.6,identity;q=0.3\r\nAccept: */*\r\nUser-Agent: Ruby\r\nConnection: close\r\nHost: testapi.maxipago.net\r\nContent-Length: 1224\r\n\r\n"
+      <- "POST /UniversalAPI/postXML HTTP/1.1\r\nContent-Type: text/xml\r\nAccept-Encoding: gzip;q=1.0,deflate;q=0.6,identity;q=0.3\r\nAccept: */*\r\nUser-Agent: Ruby\r\nConnection: close\r\nHost: testapi.recebee.net\r\nContent-Length: 1224\r\n\r\n"
       <- "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n  <version>3.1.1.15</version>\n  <verification>\n    <merchantId>100</merchantId>\n    <merchantKey>21g8u6gh6szw1gywfs165vui</merchantKey>\n  </verification>\n  <order>\n    <sale>\n      <processorID>1</processorID>\n      <fraudCheck>N</fraudCheck>\n      <referenceNum>12345</referenceNum>\n      <transactionDetail>\n        <payType>\n          <creditCard>\n            <number>4111111111111111</number>\n            <expMonth>9</expMonth>\n            <expYear>2017</expYear>\n            <cvvNumber>444</cvvNumber>\n          </creditCard>\n        </payType>\n      </transactionDetail>\n      <payment>\n        <chargeTotal>10.00</chargeTotal>\n        <creditInstallment>\n          <numberOfInstallments>3</numberOfInstallments>\n          <chargeInterest>N</chargeInterest>\n        </creditInstallment>\n      </payment>\n      <billing>\n        <name>Longbob Longsen</name>\n        <address>456 My Street</address>\n        <address2>Apt 1</address2>\n        <city>Ottawa</city>\n        <state>ON</state>\n        <postalcode>K1C2N6</postalcode>\n        <country>CA</country>\n        <phone>(555)555-5555</phone>\n      </billing>\n    </sale>\n  </order>\n</transaction-request>\n"
       -> "HTTP/1.1 200 OK\r\n"
       -> "Date: Thu, 09 Jun 2016 14:54:53 GMT\r\n"
@@ -154,11 +154,11 @@ class MaxipagoTest < Test::Unit::TestCase
 
   def post_scrubbed
     %(
-      opening connection to testapi.maxipago.net:443...
+      opening connection to testapi.recebee.net:443...
       opened
-      starting SSL for testapi.maxipago.net:443...
+      starting SSL for testapi.recebee.net:443...
       SSL established
-      <- "POST /UniversalAPI/postXML HTTP/1.1\r\nContent-Type: text/xml\r\nAccept-Encoding: gzip;q=1.0,deflate;q=0.6,identity;q=0.3\r\nAccept: */*\r\nUser-Agent: Ruby\r\nConnection: close\r\nHost: testapi.maxipago.net\r\nContent-Length: 1224\r\n\r\n"
+      <- "POST /UniversalAPI/postXML HTTP/1.1\r\nContent-Type: text/xml\r\nAccept-Encoding: gzip;q=1.0,deflate;q=0.6,identity;q=0.3\r\nAccept: */*\r\nUser-Agent: Ruby\r\nConnection: close\r\nHost: testapi.recebee.net\r\nContent-Length: 1224\r\n\r\n"
       <- "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n  <version>3.1.1.15</version>\n  <verification>\n    <merchantId>100</merchantId>\n    <merchantKey>[FILTERED]</merchantKey>\n  </verification>\n  <order>\n    <sale>\n      <processorID>1</processorID>\n      <fraudCheck>N</fraudCheck>\n      <referenceNum>12345</referenceNum>\n      <transactionDetail>\n        <payType>\n          <creditCard>\n            <number>[FILTERED]</number>\n            <expMonth>9</expMonth>\n            <expYear>2017</expYear>\n            <cvvNumber>[FILTERED]</cvvNumber>\n          </creditCard>\n        </payType>\n      </transactionDetail>\n      <payment>\n        <chargeTotal>10.00</chargeTotal>\n        <creditInstallment>\n          <numberOfInstallments>3</numberOfInstallments>\n          <chargeInterest>N</chargeInterest>\n        </creditInstallment>\n      </payment>\n      <billing>\n        <name>Longbob Longsen</name>\n        <address>456 My Street</address>\n        <address2>Apt 1</address2>\n        <city>Ottawa</city>\n        <state>ON</state>\n        <postalcode>K1C2N6</postalcode>\n        <country>CA</country>\n        <phone>(555)555-5555</phone>\n      </billing>\n    </sale>\n  </order>\n</transaction-request>\n"
       -> "HTTP/1.1 200 OK\r\n"
       -> "Date: Thu, 09 Jun 2016 14:54:53 GMT\r\n"

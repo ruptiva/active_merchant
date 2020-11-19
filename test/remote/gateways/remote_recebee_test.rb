@@ -1,8 +1,8 @@
 require 'test_helper'
 
-class RemoteMaxipagoTest < Test::Unit::TestCase
+class RemoteRecebeeTest < Test::Unit::TestCase
   def setup
-    @gateway = MaxipagoGateway.new(fixtures(:maxipago))
+    @gateway = RecebeeGateway.new(fixtures(:recebee))
 
     @amount = 1000
     @invalid_amount = 2009
@@ -121,7 +121,7 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
   end
 
   def test_invalid_login
-    gateway = MaxipagoGateway.new(
+    gateway = RecebeeGateway.new(
       login: '',
       password: ''
     )

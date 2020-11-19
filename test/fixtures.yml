@@ -481,7 +481,7 @@ litle:
   merchant_id: 101
 
 # Working test credentials, no need to replace
-maxipago:
+recebee:
   login: "100"
   password: "21g8u6gh6szw1gywfs165vui"
 
