@@ -1104,6 +1104,11 @@ realex_with_account:
   password: Y
   account: testaccount
 
+# Working credentials, no need to replace
+recebee:
+  some_credential: SOMECREDENTIAL
+  another_credential: ANOTHERCREDENTIAL
+
 redsys:
   login: MERCHANT CODE
   secret_key: SECRET KEY

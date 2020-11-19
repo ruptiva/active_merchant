@@ -4,128 +4,144 @@ class RemoteRecebeeTest < Test::Unit::TestCase
   def setup
     @gateway = RecebeeGateway.new(fixtures(:recebee))
 
-    @amount = 1000
-    @invalid_amount = 2009
-    @credit_card = credit_card('4111111111111111', verification_value: '444')
-    @invalid_card = credit_card('4111111111111111', year: Time.now.year - 1)
-
+    @amount = 100
+    @credit_card = credit_card('4000100011112224')
+    @declined_card = credit_card('4000300011112220')
     @options = {
-      order_id: '12345',
       billing_address: address,
-      description: 'Store Purchase',
-      installments: 3
+      description: 'Store Purchase'
     }
   end
 
-  def test_successful_authorize
-    assert response = @gateway.authorize(@amount, @credit_card, @options)
-    assert_success response
-    assert_equal 'AUTHORIZED', response.message
-  end
-
-  def test_failed_authorize
-    assert response = @gateway.authorize(@amount, @invalid_card, @options)
-    assert_failure response
-    assert_equal 'The transaction has an expired credit card.', response.message
-  end
-
-  def test_successful_authorize_and_capture
-    amount = @amount
-    authorize = @gateway.authorize(amount, @credit_card, @options)
-    assert_success authorize
-
-    capture = @gateway.capture(amount, authorize.authorization, @options)
-    assert_success capture
-  end
-
   def test_successful_purchase
-    assert response = @gateway.purchase(@amount, @credit_card, @options)
+    response = @gateway.purchase(@amount, @credit_card, @options)
     assert_success response
+    assert_equal 'REPLACE WITH SUCCESS MESSAGE', response.message
   end
 
-  def test_successful_purchase_sans_options
-    assert response = @gateway.purchase(@amount, @credit_card)
-    assert_success response
-  end
+  def test_successful_purchase_with_more_options
+    options = {
+      order_id: '1',
+      ip: "127.0.0.1",
+      email: "joe@example.com"
+    }
 
-  def test_successful_purchase_with_currency
-    assert response = @gateway.purchase(@amount, @credit_card, @options.merge(currency: 'CLP'))
+    response = @gateway.purchase(@amount, @credit_card, options)
     assert_success response
+    assert_equal 'REPLACE WITH SUCCESS MESSAGE', response.message
   end
 
   def test_failed_purchase
-    assert response = @gateway.purchase(@invalid_amount, @credit_card, @options)
+    response = @gateway.purchase(@amount, @declined_card, @options)
     assert_failure response
+    assert_equal 'REPLACE WITH FAILED PURCHASE MESSAGE', response.message
   end
 
-  def test_failed_capture
-    assert response = @gateway.capture(@amount, 'bogus')
-    assert_failure response
-  end
-
-  def test_successful_void
+  def test_successful_authorize_and_capture
     auth = @gateway.authorize(@amount, @credit_card, @options)
     assert_success auth
 
-    void = @gateway.void(auth.authorization)
-    assert_success void
-    assert_equal 'VOIDED', void.message
+    assert capture = @gateway.capture(@amount, auth.authorization)
+    assert_success capture
+    assert_equal 'REPLACE WITH SUCCESS MESSAGE', capture.message
   end
 
-  def test_failed_void
-    response = @gateway.void('NOAUTH|0000000')
+  def test_failed_authorize
+    response = @gateway.authorize(@amount, @declined_card, @options)
     assert_failure response
-    assert_equal 'Unable to validate, original void transaction not found', response.message
+    assert_equal 'REPLACE WITH FAILED AUTHORIZE MESSAGE', response.message
+  end
+
+  def test_partial_capture
+    auth = @gateway.authorize(@amount, @credit_card, @options)
+    assert_success auth
+
+    assert capture = @gateway.capture(@amount-1, auth.authorization)
+    assert_success capture
+  end
+
+  def test_failed_capture
+    response = @gateway.capture(@amount, '')
+    assert_failure response
+    assert_equal 'REPLACE WITH FAILED CAPTURE MESSAGE', response.message
   end
 
   def test_successful_refund
     purchase = @gateway.purchase(@amount, @credit_card, @options)
     assert_success purchase
 
-    refund = @gateway.refund(@amount, purchase.authorization, @options)
+    assert refund = @gateway.refund(@amount, purchase.authorization)
     assert_success refund
-    assert_equal 'CAPTURED', refund.message
+    assert_equal 'REPLACE WITH SUCCESSFUL REFUND MESSAGE', refund.message
   end
 
-  def test_failed_refund
+  def test_partial_refund
     purchase = @gateway.purchase(@amount, @credit_card, @options)
     assert_success purchase
 
-    refund_amount = @amount + 10
-    refund = @gateway.refund(refund_amount, purchase.authorization, @options)
-    assert_failure refund
-    assert_equal 'The Return amount is greater than the amount that can be returned.', refund.message
+    assert refund = @gateway.refund(@amount-1, purchase.authorization)
+    assert_success refund
+  end
+
+  def test_failed_refund
+    response = @gateway.refund(@amount, '')
+    assert_failure response
+    assert_equal 'REPLACE WITH FAILED REFUND MESSAGE', response.message
+  end
+
+  def test_successful_void
+    auth = @gateway.authorize(@amount, @credit_card, @options)
+    assert_success auth
+
+    assert void = @gateway.void(auth.authorization)
+    assert_success void
+    assert_equal 'REPLACE WITH SUCCESSFUL VOID MESSAGE', void.message
+  end
+
+  def test_failed_void
+    response = @gateway.void('')
+    assert_failure response
+    assert_equal 'REPLACE WITH FAILED VOID MESSAGE', response.message
   end
 
   def test_successful_verify
     response = @gateway.verify(@credit_card, @options)
     assert_success response
-    assert_equal 'AUTHORIZED', response.message
+    assert_match %r{REPLACE WITH SUCCESS MESSAGE}, response.message
   end
 
   def test_failed_verify
-    response = @gateway.verify(@invalid_card, @options)
+    response = @gateway.verify(@declined_card, @options)
     assert_failure response
-    assert_equal 'The transaction has an expired credit card.', response.message
+    assert_match %r{REPLACE WITH FAILED PURCHASE MESSAGE}, response.message
+  end
+
+  def test_invalid_login
+    gateway = RecebeeGateway.new(login: '', password: '')
+
+    response = gateway.purchase(@amount, @credit_card, @options)
+    assert_failure response
+    assert_match %r{REPLACE WITH FAILED LOGIN MESSAGE}, response.message
+  end
+
+  def test_dump_transcript
+    # This test will run a purchase transaction on your gateway
+    # and dump a transcript of the HTTP conversation so that
+    # you can use that transcript as a reference while
+    # implementing your scrubbing logic.  You can delete
+    # this helper after completing your scrub implementation.
+    dump_transcript_and_fail(@gateway, @amount, @credit_card, @options)
   end
 
   def test_transcript_scrubbing
     transcript = capture_transcript(@gateway) do
       @gateway.purchase(@amount, @credit_card, @options)
     end
-    clean_transcript = @gateway.scrub(transcript)
+    transcript = @gateway.scrub(transcript)
 
-    assert_scrubbed(@credit_card.number, clean_transcript)
-    assert_scrubbed(@credit_card.verification_value.to_s, clean_transcript)
-    assert_scrubbed(@gateway.options[:password], clean_transcript)
+    assert_scrubbed(@credit_card.number, transcript)
+    assert_scrubbed(@credit_card.verification_value, transcript)
+    assert_scrubbed(@gateway.options[:password], transcript)
   end
 
-  def test_invalid_login
-    gateway = RecebeeGateway.new(
-      login: '',
-      password: ''
-    )
-    response = gateway.purchase(@amount, @credit_card, @options)
-    assert_failure response
-  end
 end
