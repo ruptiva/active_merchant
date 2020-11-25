@@ -1,15 +1,15 @@
 module ActiveMerchant #:nodoc:
   module Billing #:nodoc:
     class RecebeeGateway < Gateway
-      self.test_url = 'https://example.com/test'
-      self.live_url = 'https://example.com/live'
+      self.test_url = 'https://google.com'
+      self.live_url = 'https://api-switcher-recebee-homolog.herokuapp.com/'
 
-      self.supported_countries = ['US']
-      self.default_currency = 'USD'
-      self.supported_cardtypes = [:visa, :master, :american_express, :discover]
+      self.supported_countries = ['BR']
+      self.default_currency = 'BRL'
+      self.supported_cardtypes = [:visa, :master, :elo]
 
-      self.homepage_url = 'http://www.example.net/'
-      self.display_name = 'New Gateway'
+      self.homepage_url = 'https://recebee.com.br/'
+      self.display_name = 'Recebee Gateway'
 
       STANDARD_ERROR_CODE_MAPPING = {}
 
