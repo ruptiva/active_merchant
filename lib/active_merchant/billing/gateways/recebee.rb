@@ -14,7 +14,9 @@ module ActiveMerchant #:nodoc:
       STANDARD_ERROR_CODE_MAPPING = {}
 
       def initialize(options={})
-        requires!(options, :some_credential, :another_credential)
+        requires!(options, :access_token)
+        @access_token = options[:access_token]
+
         super
       end
 
@@ -117,6 +119,16 @@ module ActiveMerchant #:nodoc:
         unless success_from(response)
           # TODO: lookup error code for this response
         end
+      end
+
+      def headers(options)
+        headers = {
+          'Content-Type' => 'application/json',
+          # 'User-Agent' => "ActiveMerchantBindings/#{ActiveMerchant::VERSION}",
+          'Authorization' => "Bearer #{@access_token}"
+        }
+
+        headers
       end
     end
   end
