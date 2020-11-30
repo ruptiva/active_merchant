@@ -27,7 +27,7 @@ module ActiveMerchant #:nodoc:
         add_payment_type(post, payment_type)
         add_credit_card(post, payment_type)
         add_installments(post, options) if options[:installments]
-        add_metadata
+        add_metadata(post)
 
         commit(:post, "/v1/customers/#{@customer_id}/transactions", post)
       end
@@ -95,7 +95,7 @@ module ActiveMerchant #:nodoc:
         post[:installment_plan][:number_installments] = options[:installments]
       end
 
-      def add_metadata(post, options)
+      def add_metadata(post)
         post[:description] = 'Spree'
       end
 
