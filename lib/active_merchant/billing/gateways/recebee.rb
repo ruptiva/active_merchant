@@ -22,42 +22,41 @@ module ActiveMerchant #:nodoc:
       end
 
       def purchase(amount, payment_type, options = {})
-        post = {}
+        post = { installment_plan: {}, source: { card: {} } }
         add_amount(post, amount)
         add_payment_type(post, payment_type)
         add_credit_card(post, payment_type)
-        add_metadata(post, options)
 
         commit(:post, "/v1/customers/#{@customer_id}/transactions", post)
       end
 
-      def authorize(amount, payment, options={})
-        post = {}
-        add_payment(post, payment)
-        add_address(post, payment, options)
-        add_customer_data(post, options)
+      # def authorize(amount, payment, options={})
+      #   post = {}
+      #   add_payment(post, payment)
+      #   add_address(post, payment, options)
+      #   add_customer_data(post, options)
 
-        commit('authonly', post)
-      end
+      #   commit('authonly', post)
+      # end
 
-      def capture(amount, authorization, options={})
-        commit('capture', post)
-      end
+      # def capture(amount, authorization, options={})
+      #   commit('capture', post)
+      # end
 
-      def refund(amount, authorization, options={})
-        commit('refund', post)
-      end
+      # def refund(amount, authorization, options={})
+      #   commit('refund', post)
+      # end
 
-      def void(authorization, options={})
-        commit('void', post)
-      end
+      # def void(authorization, options={})
+      #   commit('void', post)
+      # end
 
-      def verify(credit_card, options={})
-        MultiResponse.run(:use_first_response) do |r|
-          r.process { authorize(100, credit_card, options) }
-          r.process(:ignore_result) { void(r.authorization, options) }
-        end
-      end
+      # def verify(credit_card, options={})
+      #   MultiResponse.run(:use_first_response) do |r|
+      #     r.process { authorize(100, credit_card, options) }
+      #     r.process(:ignore_result) { void(r.authorization, options) }
+      #   end
+      # end
 
       def supports_scrubbing?
         true
@@ -88,49 +87,14 @@ module ActiveMerchant #:nodoc:
         post[:source][:card][:card_cvv] = credit_card.verification_value
       end
 
-      def add_metadata(post, options = {})
-        post[:metadata] = {
-          "payment_type": "credit",
-          "description": "Switcher",
-          "installment_plan": {
-            "mode": "interest_free",
-            "number_installments": 3
-          },
-          "source": {
-            "usage": "single_use",
-            "type": "card",
-            "currency": "BRL",
-            "amount": 1050,
-            "card": {
-              "holder_name": "Matheus Luvison",
-              "expiration_month": "09",
-              "expiration_year": "2024",
-              "card_number": "5417319070834825",
-              "security_code": "726"
-            }
-          }
-        }
-        # post[:metadata][:order_id] = options[:order_id]
-        # post[:metadata][:ip] = options[:ip]
-        # post[:metadata][:customer] = options[:customer]
-        # post[:metadata][:invoice] = options[:invoice]
-        # post[:metadata][:merchant] = options[:merchant]
-        # post[:metadata][:description] = options[:description]
-        # post[:metadata][:email] = options[:email]
-      end
+      # def add_customer_data(post, options)
+      # end
 
-      def add_customer_data(post, options)
-      end
+      # def add_address(post, creditcard, options)
+      # end
 
-      def add_address(post, creditcard, options)
-      end
-
-      def add_payment(post, payment)
-      end
-
-      def parse(body)
-        {}
-      end
+      # def add_payment(post, payment)
+      # end
 
       def commit(method, url, parameters, options = {})
         response = api_request(method, url, parameters, options)
@@ -161,9 +125,6 @@ module ActiveMerchant #:nodoc:
       def authorization_from(response)
         # este método aparentemente precisa retornar o ID da transação
         response['id'] if success_from(response)
-      end
-
-      def post_data(action, parameters = {})
       end
 
       def error_code_from(response)

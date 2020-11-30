@@ -1106,8 +1106,7 @@ realex_with_account:
 
 # Working credentials, no need to replace
 recebee:
-  some_credential: SOMECREDENTIAL
-  another_credential: ANOTHERCREDENTIAL
+  access_token: some_access_token
 
 redsys:
   login: MERCHANT CODE
