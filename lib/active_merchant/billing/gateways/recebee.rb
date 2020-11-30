@@ -74,7 +74,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def add_payment_type(post, payment_type)
-        post[:payment_type] = payment_type
+        post[:payment_type] = 'credit'
       end
 
       def add_credit_card(post, credit_card)
