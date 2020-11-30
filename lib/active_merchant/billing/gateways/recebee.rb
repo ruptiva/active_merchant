@@ -109,6 +109,22 @@ module ActiveMerchant #:nodoc:
         )
       end
 
+      def response_error(raw_response)
+        parse(raw_response)
+      rescue JSON::ParserError
+        json_error(raw_response)
+      end
+
+      def json_error(raw_response)
+        msg = 'Resposta inválida retornada pela API do Pagar.me. Por favor entre em contato com suporte@pagar.me se você continuar recebendo essa mensagem.'
+        msg += "  (A resposta retornada pela API foi #{raw_response.inspect})"
+        {
+          'errors' => [{
+            'message' => msg
+          }]
+        }
+      end
+
       def success_from(response)
         success_purchase = response.key?('status') && response['status'] == 'succeeded'
         success_purchase
