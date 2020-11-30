@@ -26,6 +26,8 @@ module ActiveMerchant #:nodoc:
         add_amount(post, amount)
         add_payment_type(post, payment_type)
         add_credit_card(post, payment_type)
+        add_installments(post, options) if options[:installments]
+        add_metadata
 
         commit(:post, "/v1/customers/#{@customer_id}/transactions", post)
       end
@@ -81,10 +83,20 @@ module ActiveMerchant #:nodoc:
         post[:source][:usage] = 'single_use',
         post[:source][:type] = 'card'
         post[:source][:currency] = 'BRL'
+        post[:source][:card][:holder_name] = credit_card.name
+        post[:source][:card][:expiration_month] = "#{credit_card.month}"
+        post[:source][:card][:expiration_year] = "#{credit_card.year}"
         post[:source][:card][:card_number] = credit_card.number
-        post[:source][:card][:card_holder_name] = credit_card.name
-        post[:source][:card][:card_expiration_date] = "#{credit_card.month}/#{credit_card.year}"
-        post[:source][:card][:card_cvv] = credit_card.verification_value
+        post[:source][:card][:security_code] = credit_card.verification_value
+      end
+
+      def add_installments(post, options)
+        post[:installment_plan][:mode] = 'interest_free'#byebug # era pra ser hardcoded essa opção?
+        post[:installment_plan][:number_installments] = options[:installments]
+      end
+
+      def add_metadata(post, options)
+        post[:description] = 'Spree'
       end
 
       # def add_customer_data(post, options)
