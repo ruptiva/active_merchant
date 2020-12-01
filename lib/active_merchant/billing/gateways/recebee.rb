@@ -80,7 +80,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def add_credit_card(post, credit_card)
-        post[:source][:usage] = 'single_use',
+        post[:source][:usage] = 'single_use'
         post[:source][:type] = 'card'
         post[:source][:currency] = 'BRL'
         post[:source][:card][:holder_name] = credit_card.name
@@ -179,8 +179,24 @@ module ActiveMerchant #:nodoc:
         JSON.parse(body)
       end
 
-      def post_data(post)
-        post
+      def post_data(params)
+        return nil unless params
+
+        params.map do |key, value|
+          next if value != false && value.blank?
+
+          if value.is_a?(Hash)
+            h = {}
+            value.each do |k, v|
+              h["#{key}[#{k}]"] = v unless v.blank?
+            end
+            post_data(h)
+          elsif value.is_a?(Array)
+            value.map { |v| "#{key}[]=#{CGI.escape(v.to_s)}" }.join('&')
+          else
+            "#{key}=#{CGI.escape(value.to_s)}"
+          end
+        end.compact.join('&')
       end
 
       def headers(options)
