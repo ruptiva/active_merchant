@@ -29,7 +29,7 @@ module ActiveMerchant #:nodoc:
         add_installments(post, options) if options[:installments]
         add_metadata(post)
 
-        commit(:post, "v1/customers/#{@customer_id}/transactions", post)
+        commit(:post, "v1/customers/#{@customer_id}/transactions?#{post_data}")
       end
 
       # def authorize(amount, payment, options={})
