@@ -179,7 +179,7 @@ module ActiveMerchant #:nodoc:
         JSON.parse(body)
       end
 
-      def post_data(params)
+      def post_data(post)
         post.collect { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
       end
 
