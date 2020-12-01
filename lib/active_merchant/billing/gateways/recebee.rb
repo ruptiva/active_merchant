@@ -180,7 +180,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def post_data(post)
-        post.collect { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
+        post
       end
 
       def headers(options)
