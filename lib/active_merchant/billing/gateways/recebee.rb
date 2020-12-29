@@ -26,7 +26,7 @@ module ActiveMerchant #:nodoc:
         add_amount(post, amount)
         add_payment_type(post, payment_type)
         add_credit_card(post, payment_type)
-        add_installments(post, options) if options[:installments]
+        add_installments(post, options) if options[:number_installments]
         add_metadata(post)
 
         commit(:post, "v1/customers/#{@customer_id}/transactions?#{post_data(post)}", {})
@@ -45,13 +45,17 @@ module ActiveMerchant #:nodoc:
       #   commit('capture', post)
       # end
 
-      # def refund(amount, authorization, options={})
-      #   commit('refund', post)
-      # end
+      def refund(amount, authorization, options={})
+        post = {}
+        commit('refund', post)
+      end
 
-      # def void(authorization, options={})
-      #   commit('void', post)
-      # end
+      def void(authorization, options = {})
+        return Response.new(false, 'Não é possível estornar uma transação sem uma prévia autorização.') if authorization.nil?
+
+        post = {}
+        commit(:post, "v1/customers/#{@customer_id}/transactions/#{transaction_id}/refund", post)
+      end
 
       # def verify(credit_card, options={})
       #   MultiResponse.run(:use_first_response) do |r|
@@ -92,7 +96,7 @@ module ActiveMerchant #:nodoc:
 
       def add_installments(post, options)
         post[:installment_plan][:mode] = 'interest_free'#byebug # era pra ser hardcoded essa opção?
-        post[:installment_plan][:number_installments] = options[:installments]
+        post[:installment_plan][:number_installments] = options[:number_installments]
       end
 
       def add_metadata(post)
