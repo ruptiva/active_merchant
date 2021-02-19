@@ -1,8 +1,8 @@
 module ActiveMerchant #:nodoc:
   module Billing #:nodoc:
     class RecebeeGateway < Gateway
-      self.test_url = 'https://api-switcher-recebee-homolog.herokuapp.com/'
-      self.live_url = 'https://api-switcher-recebee-homolog.herokuapp.com/'
+      self.test_url = ENV['API_SWITCHER_RECEBEE_URL']
+      self.live_url = ENV['API_SWITCHER_RECEBEE_URL']
 
       self.supported_countries = ['BR']
       self.default_currency = 'BRL'
