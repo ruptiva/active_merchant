@@ -25,9 +25,16 @@ module ActiveMerchant #:nodoc:
         post = { installment_plan: {}, source: { card: {} } }
         add_amount(post, amount)
         add_payment_type(post, payment_type)
-        add_credit_card(post, payment_type)
-        add_installments(post, options) if options[:number_installments]
         add_metadata(post)
+        if post[:payment_type] == 'boleto'
+          # estamos utilizando o credit_card.name para passar o customer_id na
+          # zoop, quando o meio de pagamento é boleto
+          add_customer(post, credit_card.name)
+          add_expiration_date(post)
+        else
+          add_credit_card(post, payment_type)
+          add_installments(post, options) if options[:number_installments]
+        end
 
         commit(:post, "v1/customers/#{@customer_id}/transactions?#{post_data(post)}", {})
       end
@@ -80,7 +87,20 @@ module ActiveMerchant #:nodoc:
       end
 
       def add_payment_type(post, payment_type)
-        post[:payment_type] = 'credit'
+        if credit_card.number == '0000000000000000'
+          post[:payment_type] = 'boleto'
+        else
+          post[:payment_type] = 'credit'
+        end
+      end
+
+      def add_customer(post, customer)
+        post[:customer] = customer
+      end
+
+      def add_expiration_date(post)
+        #byebug # essa regra de negócio, do boleto vencer em 3 dias corridos, talvez não devesse estar aqui (?)
+        post[:payment_method][:expiration_date] = 3.days.from_now.to_date.to_s
       end
 
       def add_credit_card(post, credit_card)
@@ -132,7 +152,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def json_error(raw_response)
-        msg = 'Resposta inválida retornada pela API do Pagar.me. Por favor entre em contato com suporte@pagar.me se você continuar recebendo essa mensagem.'
+        msg = 'Resposta inválida retornada pela API do Switcher Recebee.'
         msg += "  (A resposta retornada pela API foi #{raw_response.inspect})"
         {
           'errors' => [{
