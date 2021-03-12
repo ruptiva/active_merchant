@@ -29,7 +29,8 @@ module ActiveMerchant #:nodoc:
         if post[:payment_type] == 'boleto'
           # estamos utilizando o credit_card.name para passar o customer_id na
           # zoop, quando o meio de pagamento é boleto
-          add_customer(post, credit_card.name)
+          customer_id = payment_type.name
+          add_customer(post, customer_id)
           add_expiration_date(post)
         else
           add_credit_card(post, payment_type)
@@ -87,6 +88,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def add_payment_type(post, payment_type)
+        credit_card = payment_type
         if credit_card.number == '5534238414271981'
           post[:payment_type] = 'boleto'
         else
