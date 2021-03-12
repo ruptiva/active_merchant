@@ -180,7 +180,10 @@ module ActiveMerchant #:nodoc:
       end
 
       def success_from(response)
-        success_purchase = response.key?('status') && response['status'] == 'succeeded'
+        # Zoop returns, on 201 response:
+        # 'succeeded' status to credit card transactions 
+        # 'pending' status to boleto transactions 
+        success_purchase = response.key?('status') && response['status'].in?(['succeeded', 'pending'])
         success_purchase
       end
 
