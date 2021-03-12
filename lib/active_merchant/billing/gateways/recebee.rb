@@ -22,7 +22,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def purchase(amount, payment_type, options = {})
-        post = { installment_plan: {}, source: { card: {} } }
+        post = { installment_plan: {}, source: { card: {} }, payment_method: {} }
         add_amount(post, amount)
         add_payment_type(post, payment_type)
         add_metadata(post)
