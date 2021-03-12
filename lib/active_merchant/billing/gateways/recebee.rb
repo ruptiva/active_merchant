@@ -22,8 +22,8 @@ module ActiveMerchant #:nodoc:
       end
 
       def purchase(amount, payment_type, options = {})
-        post = { installment_plan: {}, source: { card: {} }, payment_method: {} }
-        add_amount(post, amount)
+        post = {}
+
         add_payment_type(post, payment_type)
         add_metadata(post)
         if post[:payment_type] == 'boleto'
@@ -31,9 +31,11 @@ module ActiveMerchant #:nodoc:
           # zoop, quando o meio de pagamento é boleto
           customer_id = payment_type.name
           add_customer(post, customer_id)
+          add_amount_to_boleto(post, amount)
           add_expiration_date(post)
         else
           add_credit_card(post, payment_type)
+          add_amount_to_credit_card(post, amount)
           add_installments(post, options) if options[:number_installments]
         end
 
@@ -83,8 +85,16 @@ module ActiveMerchant #:nodoc:
 
       private
 
-      def add_amount(post, amount)
+      def add_amount_to_credit_card(post, amount)
+        post[:source] = {} unless post[:source]
+
         post[:source][:amount] = amount
+        post[:source][:currency] = 'BRL'
+      end
+
+      def add_amount_to_boleto(post, amount)
+        post[:amount] = amount
+        post[:currency] = 'BRL'
       end
 
       def add_payment_type(post, payment_type)
@@ -101,14 +111,18 @@ module ActiveMerchant #:nodoc:
       end
 
       def add_expiration_date(post)
+        post[:payment_method] = {} unless post[:payment_method]
+
         #byebug # essa regra de negócio, do boleto vencer em 3 dias corridos, talvez não devesse estar aqui (?)
         post[:payment_method][:expiration_date] = 3.days.from_now.to_date.to_s
       end
 
       def add_credit_card(post, credit_card)
+        post[:source] = {} unless post[:source]
+        post[:source][:card] = {} unless post[:source][:card]
+
         post[:source][:usage] = 'single_use'
         post[:source][:type] = 'card'
-        post[:source][:currency] = 'BRL'
         post[:source][:card][:holder_name] = credit_card.name
         post[:source][:card][:expiration_month] = "#{credit_card.month}"
         post[:source][:card][:expiration_year] = "#{credit_card.year}"
@@ -117,6 +131,8 @@ module ActiveMerchant #:nodoc:
       end
 
       def add_installments(post, options)
+        post[:installment_plan] = {} unless post[:installment_plan]
+
         post[:installment_plan][:mode] = 'interest_free'#byebug # era pra ser hardcoded essa opção?
         post[:installment_plan][:number_installments] = options[:number_installments]
       end
