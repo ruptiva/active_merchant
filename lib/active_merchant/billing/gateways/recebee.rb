@@ -87,7 +87,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def add_payment_type(post, payment_type)
-        if credit_card.number == '0000000000000000'
+        if credit_card.number == '5534238414271981'
           post[:payment_type] = 'boleto'
         else
           post[:payment_type] = 'credit'
