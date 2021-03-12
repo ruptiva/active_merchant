@@ -22,6 +22,12 @@ module ActiveMerchant #:nodoc:
       end
 
       def purchase(amount, payment_type, options = {})
+        p '-' *100
+        p "amount: #{amount}"
+        p "payment_type: #{payment_type}"
+        p "options: #{options}"
+        p '-' *100
+
         post = {}
 
         add_payment_type(post, payment_type)
