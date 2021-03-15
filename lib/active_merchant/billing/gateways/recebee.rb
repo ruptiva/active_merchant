@@ -16,27 +16,19 @@ module ActiveMerchant #:nodoc:
       def initialize(options={})
         requires!(options, :access_token)
         @access_token = options[:access_token]
-        @customer_id = 123
+        @switcher_customer_id = 123
 
         super
       end
 
       def purchase(amount, payment_type, options = {})
-        p '-' *100
-        p "amount: #{amount}"
-        p "payment_type: #{payment_type}"
-        p "options: #{options}"
-        p '-' *100
-
         post = {}
 
         add_payment_type(post, payment_type)
         add_metadata(post)
         if post[:payment_type] == 'boleto'
-          # estamos utilizando o credit_card.name para passar o customer_id na
-          # zoop, quando o meio de pagamento é boleto
-          customer_id = payment_type.name
-          add_customer(post, customer_id)
+          zoop_customer_id = create_zoop_customer_id_through_switcher(payment_type)
+          add_customer(post, zoop_customer_id)
           add_amount_to_boleto(post, amount)
           add_expiration_date(post)
         else
@@ -45,7 +37,7 @@ module ActiveMerchant #:nodoc:
           add_installments(post, options) if options[:number_installments]
         end
 
-        commit(:post, "v1/customers/#{@customer_id}/transactions?#{post_data(post)}", {})
+        commit(:post, "v1/customers/#{@switcher_customer_id}/transactions?#{post_data(post)}", {})
       end
 
       # def authorize(amount, payment, options={})
@@ -70,7 +62,7 @@ module ActiveMerchant #:nodoc:
         return Response.new(false, 'Não é possível estornar uma transação sem uma prévia autorização.') if authorization.nil?
 
         post = {}
-        commit(:post, "v1/customers/#{@customer_id}/transactions/#{transaction_id}/refund", post)
+        commit(:post, "v1/customers/#{@switcher_customer_id}/transactions/#{transaction_id}/refund", post)
       end
 
       # def verify(credit_card, options={})
@@ -110,6 +102,18 @@ module ActiveMerchant #:nodoc:
         else
           post[:payment_type] = 'credit'
         end
+      end
+
+      def create_zoop_customer_id_through_switcher
+        # estamos utilizando o credit_card.name para passar o cpf para criar o
+        # customer, quando o meio de pagamento é boleto
+        taxpayer_id = payment_type.name.gsub(/[^\d]/, '')
+        p '-' * 100
+        p "taxpayer_id: #{taxpayer_id}"
+        p '-' * 100
+        zoop_customer_id = 'c5fc263f0de0489e838ea91ad65021a7' #byebug # continuar daqui e criar o customer
+
+        zoop_customer_id
       end
 
       def add_customer(post, customer)
