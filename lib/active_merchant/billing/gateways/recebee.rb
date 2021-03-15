@@ -22,6 +22,11 @@ module ActiveMerchant #:nodoc:
       end
 
       def purchase(amount, payment_type, options = {})
+        p '-' * 100
+        p payment_type.as_json
+        p '-' * 5
+        p options
+        p '-' * 100
         post = {}
 
         add_payment_type(post, payment_type)
@@ -108,10 +113,22 @@ module ActiveMerchant #:nodoc:
         # estamos utilizando o credit_card.name para passar o cpf para criar o
         # customer, quando o meio de pagamento é boleto
         taxpayer_id = payment_type.name.gsub(/[^\d]/, '')
-        p '-' * 100
-        p "taxpayer_id: #{taxpayer_id}"
-        p '-' * 100
-        zoop_customer_id = 'c5fc263f0de0489e838ea91ad65021a7' #byebug # continuar daqui e criar o customer
+        buyer = {
+          taxpayer_id: taxpayer_id,
+          first_name: 'first_name',
+          last_name: 'last_name',
+          address: {
+            line1: 'line1',
+            line2: 'line2',
+            line3: 'line3',
+            city: 'Concórdia',
+            state: 'SC',
+            neighborhood: 'Centro',
+            postal_code: '89700156',
+            country_code: 'BR'
+          }
+        }
+        zoop_customer_id = commit(:post, "v1/customers/#{@switcher_customer_id}/buyers?#{post_data(buyer)}", {})
 
         zoop_customer_id
       end
