@@ -104,7 +104,7 @@ module ActiveMerchant #:nodoc:
         end
       end
 
-      def create_zoop_customer_id_through_switcher
+      def create_zoop_customer_id_through_switcher(payment_type)
         # estamos utilizando o credit_card.name para passar o cpf para criar o
         # customer, quando o meio de pagamento é boleto
         taxpayer_id = payment_type.name.gsub(/[^\d]/, '')
