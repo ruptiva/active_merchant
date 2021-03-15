@@ -119,7 +119,6 @@ module ActiveMerchant #:nodoc:
         neighborhood = 'Centro'
         postal_code = billing_address[:zip]
         #byebug # TODO # ajustar corretamente os atributos do buyer
-
         buyer = {
           taxpayer_id: taxpayer_id,
           first_name: first_name,
@@ -135,7 +134,10 @@ module ActiveMerchant #:nodoc:
             country_code: 'BR'
           }
         }
-        zoop_customer_id = commit(:post, "v1/customers/#{@switcher_customer_id}/buyers?#{post_data(buyer)}", {})
+
+        response = commit(:post, "v1/customers/#{@switcher_customer_id}/buyers?#{post_data(buyer)}", {})
+        json_response_body = JSON.parse(response.body, symbolize_names: true)
+        zoop_customer_id = json_response_body[:id]
 
         zoop_customer_id
       end
