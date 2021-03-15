@@ -108,24 +108,33 @@ module ActiveMerchant #:nodoc:
         # estamos utilizando o credit_card.name para passar o cpf para criar o
         # customer, quando o meio de pagamento é boleto
         taxpayer_id = payment_type.name.gsub(/[^\d]/, '')
-        first_name = options[:name].split(' ')[0]
-        last_name = options[:name].split(' ')[1..].join(' ')
-        address = options[:billing_address]
+        billing_address = options[:billing_address]
+        first_name = billing_address[:name].split(' ')[0]
+        last_name = billing_address[:name].split(' ')[1..].join(' ')
+        line1 = billing_address[:address1]
+        line2 = billing_address[:address2]
+        line3 = nil
+        city = billing_address[:city]
+        state = billing_address[:state]
+        neighborhood = 'Centro'
+        postal_code = billing_address[:zip]
+        #byebug # TODO # ajustar corretamente os atributos do buyer
 
         buyer = {
           taxpayer_id: taxpayer_id,
           first_name: first_name,
           last_name: last_name,
           address: {
-            line1: address[:address1],
-            line2: address[:address2],
-            city: address[:city],
-            state: address[:state],
-            neighborhood: 'Centro',
-            postal_code: address[:zip],
+            line1: line1,
+            line2: line2,
+            line3: line3,
+            neighborhood: neighborhood,
+            city: city,
+            state: state,
+            postal_code: postal_code,
             country_code: 'BR'
           }
-        } #byebug # TODO # ajustar corretamente os atributos do buyer
+        }
         zoop_customer_id = commit(:post, "v1/customers/#{@switcher_customer_id}/buyers?#{post_data(buyer)}", {})
 
         zoop_customer_id
