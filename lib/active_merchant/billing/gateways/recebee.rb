@@ -22,17 +22,10 @@ module ActiveMerchant #:nodoc:
       end
 
       def purchase(amount, payment_type, options = {})
-        p '-' * 100
-        p payment_type.as_json
-        p '-' * 5
-        p options
-        p '-' * 100
-        post = {}
-
         add_payment_type(post, payment_type)
         add_metadata(post)
         if post[:payment_type] == 'boleto'
-          zoop_customer_id = create_zoop_customer_id_through_switcher(payment_type)
+          zoop_customer_id = create_zoop_customer_id_through_switcher(payment_type, options)
           add_customer(post, zoop_customer_id)
           add_amount_to_boleto(post, amount)
           add_expiration_date(post)
@@ -109,25 +102,28 @@ module ActiveMerchant #:nodoc:
         end
       end
 
-      def create_zoop_customer_id_through_switcher(payment_type)
+      def create_zoop_customer_id_through_switcher(payment_type, options)
         # estamos utilizando o credit_card.name para passar o cpf para criar o
         # customer, quando o meio de pagamento é boleto
         taxpayer_id = payment_type.name.gsub(/[^\d]/, '')
+        first_name = options[:name].split(' ')[0]
+        last_name = options[:name].split(' ')[1..].join(' ')
+        address = options[:billing_address]
+
         buyer = {
           taxpayer_id: taxpayer_id,
-          first_name: 'first_name',
-          last_name: 'last_name',
+          first_name: first_name,
+          last_name: last_name,
           address: {
-            line1: 'line1',
-            line2: 'line2',
-            line3: 'line3',
-            city: 'Concórdia',
-            state: 'SC',
+            line1: address[:address1],
+            line2: address[:address2],
+            city: address[:city],
+            state: address[:state],
             neighborhood: 'Centro',
-            postal_code: '89700156',
+            postal_code: address[:zip],
             country_code: 'BR'
           }
-        }
+        } #byebug # TODO # ajustar corretamente os atributos do buyer
         zoop_customer_id = commit(:post, "v1/customers/#{@switcher_customer_id}/buyers?#{post_data(buyer)}", {})
 
         zoop_customer_id
