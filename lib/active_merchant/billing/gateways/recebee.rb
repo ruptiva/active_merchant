@@ -136,8 +136,7 @@ module ActiveMerchant #:nodoc:
         }
 
         response = commit(:post, "v1/customers/#{@switcher_customer_id}/buyers?#{post_data(buyer)}", {})
-        byebug
-        # zoop_customer_id = response[:id]
+        zoop_customer_id = response.as_json['params']['id']
 
         zoop_customer_id
       end
