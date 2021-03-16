@@ -188,7 +188,6 @@ module ActiveMerchant #:nodoc:
 
       def commit(method, url, parameters, options = {})
         response = api_request(method, url, parameters, options)
-        byebug
 
         Response.new(
           success_from(response),
@@ -219,8 +218,15 @@ module ActiveMerchant #:nodoc:
       def success_from(response)
         # Zoop returns, on 201 response:
         # 'succeeded' status to credit card transactions 
-        # 'pending' status to boleto transactions 
-        success_purchase = response.key?('status') && response['status'].in?(['succeeded', 'pending'])
+        # 'pending' status to boleto transactions
+        # -------------------
+        #byebug # estas validações deveriam ser feitas a partir do status 201
+        credit_card_transaction_was_created = response.key?('status') && response['status'] == 'succeeded'
+        boleto_transaction_was_created = response.key?('status') && response['status'] == 'pending'
+        zoop_buyer_was_created = response.key?('resource') && response['resource'] == 'buyer'
+
+        success_purchase = credit_card_transaction_was_created || boleto_transaction_was_created || zoop_buyer_was_created
+
         success_purchase
       end
 
