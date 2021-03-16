@@ -136,7 +136,6 @@ module ActiveMerchant #:nodoc:
         }
 
         response = commit(:post, "v1/customers/#{@switcher_customer_id}/buyers?#{post_data(buyer)}", {})
-        byebug
         # json_response_body = JSON.parse(response.body, symbolize_names: true)
         # zoop_customer_id = json_response_body[:id]
 
@@ -189,6 +188,7 @@ module ActiveMerchant #:nodoc:
 
       def commit(method, url, parameters, options = {})
         response = api_request(method, url, parameters, options)
+        byebug
 
         Response.new(
           success_from(response),
