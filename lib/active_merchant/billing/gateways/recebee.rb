@@ -134,6 +134,7 @@ module ActiveMerchant #:nodoc:
             country_code: 'BR'
           }
         }
+        byebug
 
         response = commit(:post, "v1/customers/#{@switcher_customer_id}/buyers?#{post_data(buyer)}", {})
         zoop_customer_id = response.as_json['params']['id']
