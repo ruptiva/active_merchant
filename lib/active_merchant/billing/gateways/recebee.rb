@@ -105,20 +105,21 @@ module ActiveMerchant #:nodoc:
       end
 
       def create_zoop_customer_id_through_switcher(payment_type, options)
-        # estamos utilizando o credit_card.name para passar o cpf para criar o
-        # customer, quando o meio de pagamento é boleto
-        taxpayer_id = payment_type.name.gsub(/[^\d]/, '')
-        billing_address = options[:billing_address]
-        first_name = billing_address[:name].split(' ')[0]
-        last_name = billing_address[:name].split(' ')[1..].join(' ')
-        line1 = billing_address[:address1]
-        line2 = billing_address[:address2]
-        line3 = nil
-        city = billing_address[:city]
-        state = billing_address[:state]
-        neighborhood = 'Centro'
-        postal_code = billing_address[:zip]
-        #byebug # TODO # ajustar corretamente os atributos do buyer
+        # estamos utilizando o credit_card.name para passar os dados para criar
+        # o customer, quando o meio de pagamento é boleto
+        params = JSON.parse(JSON.parse(payment_type.name))
+
+        taxpayer_id = params['cpfCnpj']
+        first_name = params['firstname']
+        last_name = params['lastname']
+        line1 = params['address']['line1']
+        line2 = params['address']['line2']
+        line3 = params['address']['line3']
+        city = params['address']['city']
+        state = params['address']['state']
+        neighborhood = params['address']['neighborhood']
+        postal_code = params['address']['postal_code']
+
         buyer = {
           taxpayer_id: taxpayer_id,
           first_name: first_name,
@@ -134,7 +135,6 @@ module ActiveMerchant #:nodoc:
             country_code: 'BR'
           }
         }
-        byebug
 
         response = commit(:post, "v1/customers/#{@switcher_customer_id}/buyers?#{post_data(buyer)}", {})
         zoop_customer_id = response.as_json['params']['id']
