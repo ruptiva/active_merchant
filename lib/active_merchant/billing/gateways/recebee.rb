@@ -37,10 +37,7 @@ module ActiveMerchant #:nodoc:
           add_installments(post, options) if options[:number_installments]
         end
 
-        response = commit(:post, "v1/customers/#{@switcher_customer_id}/transactions?#{post_data(post)}", {})
-
-        binding.pry
-        response
+        commit(:post, "v1/customers/#{@switcher_customer_id}/transactions?#{post_data(post)}", {})
       end
 
       # def authorize(amount, payment, options={})
