@@ -58,15 +58,10 @@ module ActiveMerchant #:nodoc:
         commit('refund', post)
       end
 
-      def void(authorization, options = {})
-        return Response.new(false, 'Não é possível estornar uma transação sem uma prévia autorização.') if authorization.nil?
-        post = {} # lembre-se: esse post vai vaziu mesmo, e o body com o amount vai no options.
+      def void(transaction, options = {})
+        post = {}
 
-        # Atenção, esse metodo está "quebrando o galho" por enquanto para fazer o cancelamento,
-        # quando estiver tudo ok com o cancelamento do switcher, deverá ser usado esse método commit
-        # abaixo e excluido esse método Response.
-        # commit(:post, "v1/customers/#{@switcher_customer_id}/transactions/#{transaction_id}/refund", post)
-        Response.new(true, '')
+        commit(:post, "v1/customers/#{@switcher_customer_id}/transactions/#{transaction}/refund", post)
       end
 
       # def verify(credit_card, options={})
@@ -228,17 +223,18 @@ module ActiveMerchant #:nodoc:
         credit_card_transaction_was_created = response.key?('status') && response['status'] == 'succeeded'
         boleto_transaction_was_created = response.key?('status') && response['status'] == 'pending'
         zoop_buyer_was_created = response.key?('resource') && response['resource'] == 'buyer'
+        transaction_cancellation = response.key?('status') && response['status'] == 'canceled'
 
-        success_purchase = credit_card_transaction_was_created || boleto_transaction_was_created || zoop_buyer_was_created
+        success_purchase = credit_card_transaction_was_created || boleto_transaction_was_created || zoop_buyer_was_created || transaction_cancellation
 
         success_purchase
       end
 
       def message_from(response)
         if success_from(response)
-          'Transação aprovada'
+          'Transação realizada com sucesso'
         else
-          'Houve um erro ao criar a transação'
+          'Houve um erro na transação'
         end
       end
 
