@@ -40,28 +40,46 @@ module ActiveMerchant #:nodoc:
         commit(:post, "v1/customers/#{@switcher_customer_id}/transactions?#{post_data(post)}", {})
       end
 
-      # def authorize(amount, payment, options={})
-      #   post = {}
-      #   add_payment(post, payment)
-      #   add_address(post, payment, options)
-      #   add_customer_data(post, options)
+      def authorize(amount, payment, options={})
+        post = {}
 
-      #   commit('authonly', post)
-      # end
+        post[:capture] = false
 
-      # def capture(amount, authorization, options={})
-      #   commit('capture', post)
-      # end
+        add_payment_type(post, payment)
+        add_metadata(post)
+        if post[:payment_type] == 'boleto'
+          zoop_customer_id = create_zoop_customer_id_through_switcher(payment, options)
+          add_customer(post, zoop_customer_id)
+          add_amount_to_boleto(post, amount)
+          add_expiration_date(post)
+        else
+          add_credit_card(post, payment)
+          add_amount_to_credit_card(post, amount)
+          add_installments(post, options) if options[:number_installments]
+        end
+
+        commit(:post, "v1/customers/#{@switcher_customer_id}/transactions?#{post_data(post)}", {})
+      end
+
+      def capture(amount, authorization, options={})
+        #TODO criar rota de captura no switcher
+        commit(:post, "v1/customers/#{@switcher_customer_id}/transactions/#{authorization}/capture", {})
+      end
 
       def refund(amount, authorization, options={})
         post = {}
         commit('refund', post)
       end
 
-      def void(transaction, options = {})
-        post = {}
+      def void(authorization, options = {})
+        return Response.new(false, 'Não é possível estornar uma transação sem uma prévia autorização.') if authorization.nil?
+        post = {} # lembre-se: esse post vai vaziu mesmo, e o body com o amount vai no options.
 
-        commit(:post, "v1/customers/#{@switcher_customer_id}/transactions/#{transaction}/refund", post)
+        # Atenção, esse metodo está "quebrando o galho" por enquanto para fazer o cancelamento,
+        # quando estiver tudo ok com o cancelamento do switcher, deverá ser usado esse método commit
+        # abaixo e excluido esse método Response.
+        # commit(:post, "v1/customers/#{@switcher_customer_id}/transactions/#{transaction_id}/refund", post)
+        Response.new(true, '')
       end
 
       # def verify(credit_card, options={})
@@ -104,33 +122,19 @@ module ActiveMerchant #:nodoc:
       end
 
       def create_zoop_customer_id_through_switcher(payment_type, options)
-        # estamos utilizando o credit_card.name para passar os dados para criar
-        # o customer, quando o meio de pagamento é boleto
-        params = JSON.parse(JSON.parse(payment_type.name))
-
-        taxpayer_id = params['cpfCnpj']
-        first_name = params['firstname']
-        last_name = params['lastname']
-        line1 = params['address']['line1']
-        line2 = params['address']['line2']
-        line3 = params['address']['line3']
-        city = params['address']['city']
-        state = params['address']['state']
-        neighborhood = params['address']['neighborhood']
-        postal_code = params['address']['postal_code']
 
         buyer = {
-          taxpayer_id: taxpayer_id,
-          first_name: first_name,
-          last_name: last_name,
+          taxpayer_id: options[:billing_address][:cpf_cnpj],
+          first_name: options[:billing_address][:first_name],
+          last_name: options[:billing_address][:last_name],
           address: {
-            line1: line1,
-            line2: line2,
-            line3: line3,
-            neighborhood: neighborhood,
-            city: city,
-            state: state,
-            postal_code: postal_code,
+            line1: options[:billing_address][:address1],
+            line2: options[:billing_address][:number],
+            line3: options[:billing_address][:address2],
+            neighborhood: options[:billing_address][:neighborhood],
+            city: options[:billing_address][:city],
+            state: options[:billing_address][:state],
+            postal_code: options[:billing_address][:zip],
             country_code: 'BR'
           }
         }
@@ -223,18 +227,17 @@ module ActiveMerchant #:nodoc:
         credit_card_transaction_was_created = response.key?('status') && response['status'] == 'succeeded'
         boleto_transaction_was_created = response.key?('status') && response['status'] == 'pending'
         zoop_buyer_was_created = response.key?('resource') && response['resource'] == 'buyer'
-        transaction_cancellation = response.key?('status') && response['status'] == 'canceled'
 
-        success_purchase = credit_card_transaction_was_created || boleto_transaction_was_created || zoop_buyer_was_created || transaction_cancellation
+        success_purchase = credit_card_transaction_was_created || boleto_transaction_was_created || zoop_buyer_was_created
 
         success_purchase
       end
 
       def message_from(response)
         if success_from(response)
-          'Transação realizada com sucesso'
+          'Transação aprovada'
         else
-          'Houve um erro na transação'
+          'Houve um erro ao criar a transação'
         end
       end
 
